@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd800" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="page" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f8fafc" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Background -->
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="url(#bg)" filter="url(#shadow)"/>
+
+  <!-- Document Sheet -->
+  <path d="M144 112 H304 L368 176 V400 H144 Z" fill="url(#page)" filter="url(#shadow)"/>
+  <path d="M304 112 V176 H368 Z" fill="#cbd5e1"/>
+
+  <!-- Horizontal Document Lines -->
+  <rect x="184" y="216" width="144" height="20" rx="10" fill="#059669"/>
+  <rect x="184" y="256" width="144" height="16" rx="8" fill="#94a3b8"/>
+  <rect x="184" y="292" width="112" height="16" rx="8" fill="#94a3b8"/>
+  <rect x="184" y="328" width="132" height="16" rx="8" fill="#94a3b8"/>
+
+  <!-- Sosta "S" Badge in bottom corner -->
+  <circle cx="352" cy="352" r="48" fill="#0f172a" stroke="#ffd800" stroke-width="6"/>
+  <text x="352" y="372" font-family="Arial, sans-serif" font-weight="900" font-size="52" fill="#ffd800" text-anchor="middle">S</text>
+</svg>
