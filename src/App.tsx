@@ -8,6 +8,7 @@ import { UniversalPreview } from './components/previews/UniversalPreview';
 import { ContextMenu } from './components/ContextMenu';
 import { PropertiesModal } from './components/PropertiesModal';
 import { ShortcutsModal } from './components/ShortcutsModal';
+import { SetDefaultModal } from './components/SetDefaultModal';
 import { StatusBar } from './components/StatusBar';
 import { ClipboardState, FileItem, SortField, TabItem, ViewMode } from './types';
 import { Api, getParentPath, normalizePath } from './api/tauriBridge';
@@ -38,6 +39,7 @@ export const App: React.FC = () => {
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
   const [propertiesItem, setPropertiesItem] = useState<FileItem | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showSetDefault, setShowSetDefault] = useState(false);
   const [recentPaths, setRecentPaths] = useState<string[]>(['/Documents', '/Projects']);
 
   // Context Menu State
@@ -406,6 +408,7 @@ export const App: React.FC = () => {
       <TitleBar
         onShowShortcuts={() => setShowShortcuts(true)}
         onResetFs={handleResetFs}
+        onOpenSetDefault={() => setShowSetDefault(true)}
       />
 
       {/* 2. Chrome-style Tab Bar */}
@@ -571,6 +574,11 @@ export const App: React.FC = () => {
       {/* 8. Shortcuts Cheat Sheet Modal */}
       {showShortcuts && (
         <ShortcutsModal onClose={() => setShowShortcuts(false)} />
+      )}
+
+      {/* 9. Set as Default File Viewer Modal */}
+      {showSetDefault && (
+        <SetDefaultModal onClose={() => setShowSetDefault(false)} />
       )}
     </div>
   );

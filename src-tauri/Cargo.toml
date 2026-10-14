@@ -1,6 +1,6 @@
 [package]
 name = "sosta-file-viewer"
-version = "0.1.0"
+version = "0.0.0"
 description = "Sosta File Viewer - Lightweight Universal Desktop File Explorer"
 authors = ["Sosta Dev"]
 edition = "2021"
