@@ -27,7 +27,12 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
     "fileAssociations": [
       {
         "ext": ["pdf"],
@@ -37,14 +42,14 @@
       },
       {
         "ext": ["epub", "mobi", "cbz", "cbr"],
-        "name": "E-Book & Comic",
+        "name": "E-Book Document",
         "description": "Electronic Publication Document",
         "role": "Viewer"
       },
       {
         "ext": ["docx", "xlsx", "txt", "md", "json"],
         "name": "Universal Document",
-        "description": "Universal Document & Code File",
+        "description": "Universal Document File",
         "role": "Viewer"
       }
     ],

@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 use sha2::{Digest, Sha256};
 use std::fs::{self, File};
 use std::io::{Read, Seek, SeekFrom};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use walkdir::WalkDir;
 
 pub fn format_size(bytes: u64) -> String {
