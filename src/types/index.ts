@@ -81,6 +81,7 @@ export interface TabItem {
   searchQuery: string;
   filterType: string;
   showHidden: boolean;
+  openedFile?: FileItem;
 }
 
 export interface ClipboardState {
