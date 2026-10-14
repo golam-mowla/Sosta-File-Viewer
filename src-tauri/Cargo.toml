@@ -1,0 +1,29 @@
+[package]
+name = "sosta-file-viewer"
+version = "0.1.0"
+description = "Sosta File Viewer - Lightweight Universal Desktop File Explorer"
+authors = ["Sosta Dev"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "sosta_file_viewer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+walkdir = "2"
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
+chrono = { version = "0.4", features = ["serde"] }
+base64 = "0.22"
+sha2 = "0.10"
+hex = "0.4"
