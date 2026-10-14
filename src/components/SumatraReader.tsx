@@ -223,20 +223,10 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
           <button
             onClick={onOpenWith}
             className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition flex items-center space-x-1"
-            title="Open With External Application"
+            title="Open With (Choose app and set as default)"
           >
             <ExternalLink size={12} className="text-emerald-500" />
             <span>Open With...</span>
-          </button>
-
-          {/* Set Default App Button */}
-          <button
-            onClick={onSetDefault}
-            className="px-2.5 py-1 rounded bg-[#ffd800] hover:bg-amber-400 text-slate-950 text-xs font-bold transition flex items-center space-x-1 shadow-sm border border-amber-400"
-            title="Choose default application for .md, .pdf, etc."
-          >
-            <Star size={12} className="fill-slate-950" />
-            <span>Set Default (.{file.extension || 'md'})</span>
           </button>
         </div>
       </div>

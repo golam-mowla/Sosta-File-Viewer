@@ -11,6 +11,8 @@ import { ContextMenu } from './components/ContextMenu';
 import { PropertiesModal } from './components/PropertiesModal';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { SetDefaultModal } from './components/SetDefaultModal';
+import { HelpModal } from './components/HelpModal';
+import { UpdateModal } from './components/UpdateModal';
 import { StatusBar } from './components/StatusBar';
 import { ClipboardState, FileItem, SortField, TabItem, ViewMode } from './types';
 import { Api, getParentPath, normalizePath } from './api/tauriBridge';
@@ -86,6 +88,8 @@ export const App: React.FC = () => {
   const [propertiesItem, setPropertiesItem] = useState<FileItem | null>(null);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showSetDefault, setShowSetDefault] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showUpdate, setShowUpdate] = useState(false);
   const [openWithFile, setOpenWithFile] = useState<FileItem | null>(null);
   const [recentPaths, setRecentPaths] = useState<string[]>(['/Documents', '/Projects']);
 
@@ -390,7 +394,8 @@ export const App: React.FC = () => {
             loadDirectory();
           }
         }}
-        onOpenSetDefault={() => setShowSetDefault(true)}
+        onOpenHelp={() => setShowHelp(true)}
+        onOpenUpdate={() => setShowUpdate(true)}
       />
 
       {/* 2. Sumatra PDF Chrome-Style Tab Bar */}
@@ -526,6 +531,11 @@ export const App: React.FC = () => {
               else handleOpenFileInTab(target);
             }
           }}
+          onOpenWith={() => {
+            if (contextMenu.targets.length > 0) {
+              setOpenWithFile(contextMenu.targets[0]);
+            }
+          }}
           onPreview={() => {
             if (contextMenu.targets.length > 0) {
               handleOpenFileInTab(contextMenu.targets[0]);
@@ -576,6 +586,21 @@ export const App: React.FC = () => {
       {/* Set as Default File Viewer Modal */}
       {showSetDefault && (
         <SetDefaultModal onClose={() => setShowSetDefault(false)} />
+      )}
+
+      {/* Help & Supported Formats Modal */}
+      {showHelp && (
+        <HelpModal
+          onClose={() => setShowHelp(false)}
+          onCheckUpdate={() => setShowUpdate(true)}
+        />
+      )}
+
+      {/* App Updates Modal */}
+      {showUpdate && (
+        <UpdateModal
+          onClose={() => setShowUpdate(false)}
+        />
       )}
     </div>
   );

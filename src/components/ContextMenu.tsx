@@ -10,7 +10,8 @@ import {
   Trash2,
   Info,
   FolderPlus,
-  FilePlus
+  FilePlus,
+  ExternalLink
 } from 'lucide-react';
 import { FileItem } from '../types';
 
@@ -21,6 +22,7 @@ interface ContextMenuProps {
   canPaste: boolean;
   onClose: () => void;
   onOpen: () => void;
+  onOpenWith: () => void;
   onPreview: () => void;
   onCut: () => void;
   onCopy: () => void;
@@ -40,6 +42,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   canPaste,
   onClose,
   onOpen,
+  onOpenWith,
   onPreview,
   onCut,
   onCopy,
@@ -90,6 +93,17 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               <span>Open</span>
             </div>
             <span className="text-[10px] text-slate-400">Enter</span>
+          </button>
+
+          <button
+            onClick={() => { onOpenWith(); onClose(); }}
+            className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-slate-800 transition-colors"
+          >
+            <div className="flex items-center space-x-2">
+              <ExternalLink size={14} className="text-emerald-400" />
+              <span>Open with...</span>
+            </div>
+            <span className="text-[10px] text-slate-400 font-mono">Alt+O</span>
           </button>
 
           <button
