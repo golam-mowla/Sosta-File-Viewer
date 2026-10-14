@@ -9,6 +9,9 @@ export interface FileItem {
   modified?: number | string | null;
   created?: number | string | null;
   readonly?: boolean;
+  blobUrl?: string;
+  realContent?: string;
+  realFile?: File;
 }
 
 export interface FileMetadata {

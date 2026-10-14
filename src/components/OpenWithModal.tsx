@@ -89,7 +89,7 @@ export const OpenWithModal: React.FC<OpenWithModalProps> = ({
                 <div>
                   <p className="font-semibold text-xs">Sosta File Viewer</p>
                   <p className={`text-[10px] ${selectedApp === 'sosta' ? 'text-blue-100' : 'text-slate-400'}`}>
-                    Sumatra Ultralight Engine (Rust)
+                    Ultralight Universal Engine (Rust)
                   </p>
                 </div>
               </div>

@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   Menu,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  BookOpen,
-  Search,
-  ExternalLink,
-  Star,
+  RotateCw,
+  FolderOpen,
   Printer,
   Info,
-  RotateCw,
+  ExternalLink,
+  Star,
   FileText,
-  FileCode,
-  Layout,
-  Sliders,
-  Check
+  Search,
+  Maximize2
 } from 'lucide-react';
 import { FileItem } from '../types';
 import { Api } from '../api/tauriBridge';
@@ -25,39 +19,68 @@ import { CodePreview } from './previews/CodePreview';
 import { OfficePreview } from './previews/OfficePreview';
 import { ImagePreview } from './previews/ImagePreview';
 
-interface SumatraReaderProps {
+interface DocumentReaderProps {
   file: FileItem;
+  onOpenDocumentPicker: () => void;
   onOpenWith: () => void;
   onSetDefault: () => void;
   onOpenProperties: () => void;
-  onBackToExplorer?: () => void;
 }
 
-export const SumatraReader: React.FC<SumatraReaderProps> = ({
+export const DocumentReader: React.FC<DocumentReaderProps> = ({
   file,
+  onOpenDocumentPicker,
   onOpenWith,
   onSetDefault,
   onOpenProperties,
-  onBackToExplorer
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = file.extension.toLowerCase() === 'pdf' ? 4 : 1;
-  const [zoomMode, setZoomMode] = useState<'fitWidth' | 'fitPage' | 'book' | 'full'>('fitWidth');
+  const [zoomMode, setZoomMode] = useState<'fitWidth' | 'fitPage' | 'book'>('fitWidth');
   const [findText, setFindText] = useState('');
   const [matchCase, setMatchCase] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [textContent, setTextContent] = useState<string>('');
+  const [textContent, setTextContent] = useState<string>(file.realContent || '');
+  const [docxHtml, setDocxHtml] = useState<string>('');
   const [rotation, setRotation] = useState(0);
 
   const category = getFileCategory(file.extension, file.is_dir);
 
   useEffect(() => {
-    if (['code', 'markdown', 'text', 'json'].includes(category)) {
-      Api.readText(file.path)
-        .then(setTextContent)
-        .catch(err => setTextContent(`Error reading file: ${err}`));
+    if (file.realContent) {
+      setTextContent(file.realContent);
+      return;
     }
-  }, [file.path, category]);
+
+    if (['code', 'markdown', 'text', 'json'].includes(category)) {
+      if (file.realFile) {
+        file.realFile.text()
+          .then(setTextContent)
+          .catch(err => setTextContent(`Error reading file: ${err}`));
+      } else {
+        Api.readText(file.path)
+          .then(setTextContent)
+          .catch(err => setTextContent(`Error reading file: ${err}`));
+      }
+    } else if (file.extension.toLowerCase() === 'docx' && file.realFile) {
+      // Parse DOCX via mammoth
+      import('mammoth').then(mammoth => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          if (arrayBuffer) {
+            try {
+              const result = await mammoth.convertToHtml({ arrayBuffer });
+              setDocxHtml(result.value);
+            } catch (err) {
+              console.warn('Docx parse error:', err);
+            }
+          }
+        };
+        reader.readAsArrayBuffer(file.realFile!);
+      }).catch(console.error);
+    }
+  }, [file.path, file.realContent, file.realFile, category, file.extension]);
 
   const handlePageChange = (delta: number) => {
     setCurrentPage(p => Math.max(1, Math.min(totalPages, p + delta)));
@@ -70,7 +93,7 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
   return (
     <div className="flex flex-col h-full bg-[#8f8f8f] dark:bg-[#0b101b] select-none font-sans overflow-hidden">
       
-      {/* 1. Sumatra PDF Signature Reading Toolbar */}
+      {/* 1. Signature Document Reading Toolbar */}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 py-1.5 flex items-center justify-between select-none text-xs shadow-xs z-20">
         
         {/* Left Toolbar: Hamburger Menu, Page navigation, Zoom */}
@@ -89,11 +112,22 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
             {showMenu && (
               <div className="absolute left-0 top-8 z-50 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl py-1 text-slate-700 dark:text-slate-200 animate-in fade-in zoom-in-95 duration-100">
                 <button
-                  onClick={() => { setShowMenu(false); onOpenWith(); }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-600 flex items-center justify-between"
+                  onClick={() => { setShowMenu(false); onOpenDocumentPicker(); }}
+                  className="w-full text-left px-3 py-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-600 flex items-center justify-between font-medium"
                 >
                   <div className="flex items-center space-x-2">
-                    <ExternalLink size={13} className="text-emerald-500" />
+                    <FolderOpen size={13} className="text-emerald-500" />
+                    <span>Open a document...</span>
+                  </div>
+                  <kbd className="text-[10px] text-slate-400 font-mono">Ctrl+O</kbd>
+                </button>
+
+                <button
+                  onClick={() => { setShowMenu(false); onOpenWith(); }}
+                  className="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-2">
+                    <ExternalLink size={13} className="text-slate-400" />
                     <span>Open With...</span>
                   </div>
                   <kbd className="text-[10px] text-slate-400 font-mono">Alt+O</kbd>
@@ -104,7 +138,7 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
                   className="w-full text-left px-3 py-1.5 hover:bg-amber-50 dark:hover:bg-amber-950/60 text-amber-700 dark:text-amber-400 font-medium flex items-center space-x-2"
                 >
                   <Star size={13} className="text-amber-500 fill-amber-500/20" />
-                  <span>Set as Default File App...</span>
+                  <span>Set as Default App...</span>
                 </button>
 
                 <div className="my-1 border-t border-slate-200 dark:border-slate-800" />
@@ -131,7 +165,19 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
             )}
           </div>
 
-          {/* Page Controls (Exact Sumatra layout: Page [ 4 / 4 ] [←] [→]) */}
+          {/* Open a document button (Image 4 Design Request) */}
+          <button
+            onClick={onOpenDocumentPicker}
+            className="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-xs transition cursor-pointer"
+            title="Open a document from computer (Ctrl+O)"
+          >
+            <FolderOpen size={13} />
+            <span>Open a document</span>
+          </button>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
+
+          {/* Page Controls */}
           <span className="text-slate-500 font-medium">Page</span>
           <div className="flex items-center space-x-1">
             <input
@@ -195,10 +241,8 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
           </button>
         </div>
 
-        {/* Right Toolbar: Find In Document & Quick Actions */}
+        {/* Right Toolbar: Find In Document */}
         <div className="flex items-center space-x-2">
-          
-          {/* Find In Document (Matching User's Screenshot) */}
           <div className="flex items-center space-x-1 border border-slate-300 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5">
             <span className="text-slate-400 text-[11px]">Find:</span>
             <input
@@ -218,23 +262,104 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
               Aa
             </button>
           </div>
-
-          {/* Open With Button */}
-          <button
-            onClick={onOpenWith}
-            className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition flex items-center space-x-1"
-            title="Open With (Choose app and set as default)"
-          >
-            <ExternalLink size={12} className="text-emerald-500" />
-            <span>Open With...</span>
-          </button>
         </div>
       </div>
 
-      {/* 2. Main Central Reading Canvas (Crisp Document View on Neutral Background) */}
+      {/* 2. Main Central Reading Canvas */}
       <div className="flex-1 overflow-auto p-4 sm:p-6 flex justify-center items-start">
         
-        {category === 'markdown' ? (
+        {/* PDF Document View */}
+        {category === 'pdf' ? (
+          file.blobUrl ? (
+            /* Real PDF Viewer using native embed/iframe with full toolbar */
+            <div className="w-full h-full min-h-[82vh] bg-white rounded shadow-2xl overflow-hidden flex flex-col">
+              <iframe
+                src={file.blobUrl}
+                title={file.name}
+                className="w-full h-full min-h-[82vh] border-0"
+              />
+            </div>
+          ) : (
+            /* Default Bengali PDF Layout from Screenshot */
+            <div
+              style={{
+                maxWidth: zoomMode === 'fitWidth' ? '860px' : zoomMode === 'book' ? '1180px' : '580px',
+                transform: `rotate(${rotation}deg)`
+              }}
+              className="w-full bg-white text-slate-900 rounded-sm shadow-2xl p-6 sm:p-8 transition-all duration-200 font-sans"
+            >
+              <div className="bg-[#12382c] text-white p-4 rounded text-center mb-5 shadow-sm">
+                <h1 className="text-lg sm:text-xl font-bold tracking-wide">
+                  চার তরিকার সিলসিলায়ে আউলিয়া ও শাজারায়ে ত্বরীকত
+                </h1>
+                <p className="text-xs text-emerald-200 mt-1">
+                  রাসূলুল্লাহ (সা.) থেকে ধারাবাহিক পীর-মুরশিদের রূহানী শিজরাহ (সিলসিলায়ে জাহাব)
+                </p>
+              </div>
+
+              <div className="bg-[#e9f0ec] border-l-4 border-[#12382c] px-3.5 py-2 rounded-r flex items-center justify-between mb-4">
+                <h2 className="font-bold text-xs sm:text-sm text-[#12382c]">
+                  ৪. সিলসিলায়ে আলিয়া সোহরাওয়ার্দিয়া (سلسلة سهروردية)
+                </h2>
+                <span className="text-[11px] bg-[#12382c] text-white px-2 py-0.5 rounded font-mono">
+                  ইমামুল আওলিয়া: শায়খ শিহাবুদ্দীন সোহরাওয়ার্দী (রহ.)
+                </span>
+              </div>
+
+              <div className="border border-slate-200 rounded-md overflow-hidden text-xs">
+                <table className="w-full divide-y divide-slate-200">
+                  <tbody className="divide-y divide-slate-100">
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">১.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">সাইয়্যিদুনা মুহাম্মাদ রসূলুল্লাহ ﷺ</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← বিশ্বজগতের রহমত ও নবুওয়তের আলোকধারা</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">২.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত আলী ইবনে আবী তালিব (রা.)</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← জ্ঞানের দ্বার, তরীকতের অন্যতম কেন্দ্র</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৩.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত হাসান আল-বসরী (রহ.)</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← বসরাহ দরবার প্রধান ও সংস্কারক</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৪.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত হাবীব আল-আজমী (রহ.)</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← খাঁটি তওবা ও প্রেমের প্রতীক</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৫.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত দাউদ আত-তাঈ (রহ.)</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← যুহদ ও ইলমে ফিকহের সাধক</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৬.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত মারুফ আল-কারখী (রহ.)</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← বাগদাদের প্রধান অভিভাবক</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৭.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত সিররী আস-সাকাতী (রহ.)</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← বাগদাদের কুতুব ও তাপস</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৮.</td>
+                      <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত সাইয়্যিদুত তায়েফা জুনায়েদ বাগদাদী (রহ.)</td>
+                      <td className="py-1.5 px-3 text-slate-600 font-sans">← সূফি সম্প্রদায়ের ইমামুল উম্মাহ</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-6 pt-3 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
+                <span>Sosta Universal Document Engine</span>
+                <span>পৃষ্ঠা {currentPage} / {totalPages}</span>
+              </div>
+            </div>
+          )
+        ) : category === 'markdown' ? (
           /* Markdown Reader View */
           <div
             style={{
@@ -256,103 +381,39 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
               <MarkdownPreview file={file} content={textContent} />
             </div>
           </div>
-        ) : category === 'pdf' ? (
-          /* PDF Reader View (Exact Typography and Layout from User's Screenshot) */
-          <div
-            style={{
-              maxWidth: zoomMode === 'fitWidth' ? '860px' : zoomMode === 'book' ? '1180px' : '580px',
-              transform: `rotate(${rotation}deg)`
-            }}
-            className="w-full bg-white text-slate-900 rounded-sm shadow-2xl p-6 sm:p-8 transition-all duration-200 font-sans"
-          >
-            {/* Header Banner from user's image */}
-            <div className="bg-[#12382c] text-white p-4 rounded text-center mb-5 shadow-sm">
-              <h1 className="text-lg sm:text-xl font-bold tracking-wide">
-                চার তরিকার সিলসিলায়ে আউলিয়া ও শাজারায়ে ত্বরীকত
-              </h1>
-              <p className="text-xs text-emerald-200 mt-1">
-                রাসূলুল্লাহ (সা.) থেকে ধারাবাহিক পীর-মুরশিদের রূহানী শিজরাহ (সিলসিলায়ে জাহাব)
-              </p>
-            </div>
-
-            {/* Section Header */}
-            <div className="bg-[#e9f0ec] border-l-4 border-[#12382c] px-3.5 py-2 rounded-r flex items-center justify-between mb-4">
-              <h2 className="font-bold text-xs sm:text-sm text-[#12382c]">
-                ৪. সিলসিলায়ে আলিয়া সোহরাওয়ার্দিয়া (سلسلة سهروردية)
-              </h2>
-              <span className="text-[11px] bg-[#12382c] text-white px-2 py-0.5 rounded font-mono">
-                ইমামুল আওলিয়া: শায়খ শিহাবুদ্দীন সোহরাওয়ার্দী (রহ.)
-              </span>
-            </div>
-
-            {/* Table data from screenshot */}
-            <div className="border border-slate-200 rounded-md overflow-hidden text-xs">
-              <table className="w-full divide-y divide-slate-200">
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">১.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">সাইয়্যিদুনা মুহাম্মাদ রসূলুল্লাহ ﷺ</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← বিশ্বজগতের রহমত ও নবুওয়তের আলোকধারা</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">২.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত আলী ইবনে আবী তালিব (রা.)</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← জ্ঞানের দ্বার, তরীকতের অন্যতম কেন্দ্র</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৩.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত হাসান আল-বসরী (রহ.)</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← বসরাহ দরবার প্রধান ও সংস্কারক</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৪.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত হাবীব আল-আজমী (রহ.)</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← খাঁটি তওবা ও প্রেমের প্রতীক</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৫.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত দাউদ আত-তাঈ (রহ.)</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← যুহদ ও ইলমে ফিকহের সাধক</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৬.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত মারুফ আল-কারখী (রহ.)</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← বাগদাদের প্রধান অভিভাবক</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৭.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত সিররী আস-সাকাতী (রহ.)</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← বাগদাদের কুতুব ও তাপস</td>
-                  </tr>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="w-10 text-center text-slate-400 py-1.5 bg-slate-50 font-mono">৮.</td>
-                    <td className="py-1.5 px-3 font-semibold text-slate-900">হযরত সাইয়্যিদুত তায়েফা জুনায়েদ বাগদাদী (রহ.)</td>
-                    <td className="py-1.5 px-3 text-slate-600 font-sans">← সূফি সম্প্রদায়ের ইমামুল উম্মাহ</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Page Footer */}
-            <div className="mt-6 pt-3 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
-              <span>Sosta Universal Document Engine</span>
-              <span>পৃষ্ঠা {currentPage} / {totalPages}</span>
-            </div>
+        ) : category === 'image' ? (
+          /* Real Image View */
+          <div className="w-full max-w-4xl h-full flex items-center justify-center p-4">
+            {file.blobUrl ? (
+              <img
+                src={file.blobUrl}
+                alt={file.name}
+                style={{ transform: `rotate(${rotation}deg)` }}
+                className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+              />
+            ) : (
+              <ImagePreview file={file} />
+            )}
           </div>
         ) : category === 'code' || category === 'text' ? (
           <div
-            style={{ maxWidth: '900px' }}
+            style={{ maxWidth: '960px' }}
             className="w-full bg-slate-950 rounded-lg shadow-2xl overflow-hidden border border-slate-800"
           >
             <CodePreview file={file} content={textContent} />
           </div>
-        ) : category === 'image' ? (
-          <div className="w-full max-w-4xl h-full flex items-center justify-center">
-            <ImagePreview file={file} />
+        ) : category === 'docx' ? (
+          <div className="w-full max-w-3xl bg-white text-slate-900 rounded-lg shadow-2xl p-8 border border-slate-200">
+            <h1 className="text-xl font-bold mb-4 pb-2 border-b border-slate-200">{file.name}</h1>
+            {docxHtml ? (
+              <div className="prose max-w-none text-sm" dangerouslySetInnerHTML={{ __html: docxHtml }} />
+            ) : (
+              <OfficePreview file={file} type="docx" />
+            )}
           </div>
-        ) : category === 'docx' || category === 'xlsx' ? (
-          <div className="w-full max-w-4xl bg-slate-900 rounded-lg shadow-2xl overflow-hidden border border-slate-800">
-            <OfficePreview file={file} type={category as 'docx' | 'xlsx'} />
+        ) : category === 'xlsx' ? (
+          <div className="w-full max-w-5xl bg-slate-900 rounded-lg shadow-2xl overflow-hidden border border-slate-800">
+            <OfficePreview file={file} type="xlsx" />
           </div>
         ) : (
           <div className="bg-slate-900 text-slate-200 p-8 rounded-lg shadow-xl border border-slate-800 max-w-md text-center">
@@ -369,7 +430,7 @@ export const SumatraReader: React.FC<SumatraReaderProps> = ({
         )}
       </div>
 
-      {/* 3. Sumatra Bottom Status Bar */}
+      {/* 3. Bottom Status Bar */}
       <div className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-3 py-1 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 select-none">
         <div className="flex items-center space-x-3">
           <span>Document: <strong className="text-slate-800 dark:text-slate-200">{file.name}</strong></span>

@@ -36,7 +36,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ onClose }) => {
       } else {
         // Fallback info
         setHasUpdate(false);
-        setReleaseNotes('You are running the latest Sumatra Edition build of Sosta File Viewer.');
+        setReleaseNotes('You are running the latest version of Sosta File Viewer.');
       }
     } catch {
       setHasUpdate(false);

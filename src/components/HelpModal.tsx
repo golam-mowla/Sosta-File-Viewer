@@ -14,7 +14,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose, onCheckUpdate }) 
       title: 'Documents & E-Books',
       icon: '📚',
       formats: 'PDF, EPUB, MOBI, CBZ, CBR, DOCX, XLSX, XPS, DJVU, FB2',
-      desc: 'Sumatra PDF style continuous scroll, book facing, zoom, search, table of contents'
+      desc: 'High-speed continuous scroll, book facing, zoom, search, table of contents'
     },
     {
       title: 'Plaintext & Markdown',
@@ -66,7 +66,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose, onCheckUpdate }) 
             </div>
             <div>
               <h3 className="font-bold text-sm text-white">Sosta File Viewer — Help & Information</h3>
-              <p className="text-[10px] text-slate-400">Sumatra Ultralight Edition • v0.0.0</p>
+              <p className="text-[10px] text-slate-400">Ultralight Universal Document Engine • v0.0.0</p>
             </div>
           </div>
           <button
@@ -140,7 +140,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose, onCheckUpdate }) 
             <div className="grid grid-cols-2 gap-2">
               {[
                 { k: 'Space', d: 'Toggle Preview Panel' },
-                { k: 'Enter', d: 'Open in new Sumatra tab' },
+                { k: 'Enter', d: 'Open in new tab' },
                 { k: 'Alt + O', d: 'Open With dialog' },
                 { k: 'Ctrl + F', d: 'Find in document' },
                 { k: 'Ctrl + P', d: 'Print document' },
@@ -149,7 +149,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose, onCheckUpdate }) 
                 { k: 'Ctrl + C / X / V', d: 'Copy, Cut, Paste' },
                 { k: 'F2', d: 'Rename file / folder' },
                 { k: 'Delete', d: 'Delete selected file' },
-                { k: 'J / K', d: 'Sumatra scroll down / up' },
+                { k: 'J / K', d: 'Scroll down / up' },
                 { k: 'N / P', d: 'Next / previous page' },
               ].map((s, i) => (
                 <div key={i} className="flex justify-between items-center p-2 rounded bg-slate-950 border border-slate-800">
@@ -167,7 +167,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ onClose, onCheckUpdate }) 
               <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-2">
                 <div className="flex items-center space-x-2 text-white font-bold text-sm">
                   <span className="w-5 h-5 rounded bg-[#ffd800] text-black flex items-center justify-center font-bold text-xs">S</span>
-                  <span>Sosta File Viewer (Sumatra Edition)</span>
+                  <span>Sosta File Viewer</span>
                 </div>
                 <p className="text-slate-400 text-xs leading-relaxed">
                   Engineered with <strong>Rust</strong>, <strong>Tauri 2</strong>, and <strong>TypeScript + React</strong> for extreme speed, instant document rendering, and low resource overhead.
